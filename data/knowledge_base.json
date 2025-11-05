@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-11-05T00:00:00.000Z",
+  "total_cases_analyzed": 0,
+  "sources": [],
+  "case_structures": [],
+  "opening_patterns": {
+    "profitability": [],
+    "market_entry": [],
+    "mergers_acquisitions": [],
+    "competitive_response": [],
+    "new_product_launch": [],
+    "pricing": [],
+    "cost_reduction": [],
+    "growth": [],
+    "private_equity": [],
+    "process_optimization": [],
+    "offshoring": []
+  },
+  "framework_approaches": {
+    "profitability": {
+      "primary": ["Revenue-Cost Analysis", "MECE Framework"],
+      "advanced": ["Value Chain Analysis"],
+      "examples": []
+    },
+    "market_entry": {
+      "primary": ["Market Attractiveness", "Competitive Position"],
+      "advanced": ["Porter's 5 Forces"],
+      "examples": []
+    }
+  },
+  "clarifying_questions_patterns": [],
+  "quantitative_patterns": {
+    "revenue_calculation": {
+      "examples": [],
+      "formulas": ["Revenue = Price × Volume"]
+    },
+    "market_sizing": {
+      "examples": [],
+      "approaches": ["Top-down", "Bottom-up"]
+    }
+  },
+  "industry_contexts": {
+    "Tech": {
+      "case_count": 0,
+      "typical_problems": [],
+      "example_prompts": []
+    },
+    "Retail": {
+      "case_count": 0,
+      "typical_problems": [],
+      "example_prompts": []
+    },
+    "Healthcare": {
+      "case_count": 0,
+      "typical_problems": [],
+      "example_prompts": []
+    }
+  },
+  "brainstorming_categories": {
+    "risks": [],
+    "factors": [],
+    "considerations": []
+  },
+  "conclusion_formats": [],
+  "interviewer_behaviors": {},
+  "firm_styles": {}
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulting Case Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Consulting Case Generator</h1>
+            <p class="subtitle">Powered by AI • Trained on Real Cases</p>
+        </header>
+
+        <div class="generator-section">
+            <h2>Generate New Case</h2>
+
+            <div class="form-group">
+                <label for="caseType">Case Type:</label>
+                <select id="caseType">
+                    <option value="profitability">Profitability</option>
+                    <option value="market_entry">Market Entry</option>
+                    <option value="mergers_acquisitions">M&A</option>
+                    <option value="competitive_response">Competitive Response</option>
+                    <option value="new_product_launch">New Product Launch</option>
+                    <option value="pricing">Pricing</option>
+                    <option value="cost_reduction">Cost Reduction</option>
+                    <option value="growth">Growth</option>
+                    <option value="private_equity">Private Equity</option>
+                    <option value="process_optimization">Process Optimization</option>
+                    <option value="offshoring">Offshoring</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="difficulty">Difficulty:</label>
+                <select id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="industry">Industry (optional):</label>
+                <input type="text" id="industry" placeholder="e.g., Tech, Retail, Healthcare">
+            </div>
+
+            <button id="generateBtn" class="btn-primary">Generate Case</button>
+            <button id="surpriseBtn" class="btn-secondary">Surprise Me</button>
+        </div>
+
+        <div id="loadingSection" class="loading-section" style="display: none;">
+            <div class="spinner"></div>
+            <p>Generating your case interview...</p>
+        </div>
+
+        <div id="caseSection" class="case-section" style="display: none;">
+            <div class="case-header">
+                <h2>Generated Case</h2>
+                <button id="regenerateBtn" class="btn-secondary">Regenerate</button>
+            </div>
+
+            <div id="caseContent" class="case-content">
+                <!-- Case will be inserted here -->
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h3>Knowledge Base Stats</h3>
+            <div id="statsContent">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
