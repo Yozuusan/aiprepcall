@@ -1,0 +1,30 @@
+{
+  "name": "consulting-case-generator",
+  "version": "1.0.0",
+  "description": "AI-powered consulting case interview generator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "extract": "python3 extractPDFs.py",
+    "build-kb": "node buildKnowledgeBase.js",
+    "update": "npm run extract && npm run build-kb",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "consulting",
+    "case-interview",
+    "ai",
+    "generator",
+    "mckinsey",
+    "bcg",
+    "bain"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2"
+  }
+}

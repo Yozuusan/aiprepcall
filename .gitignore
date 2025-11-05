@@ -1,1 +1,35 @@
+# Environment variables
+.env
+
+# Node modules
+node_modules/
+backend/node_modules/
+
+# Generated data
+data/casebooks/*.pdf
+data/generated_cases/*.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Temporary files
+*.tmp
+.cache/
