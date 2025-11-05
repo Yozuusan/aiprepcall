@@ -9,16 +9,25 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎯 Consulting Case Generator</h1>
-            <p class="subtitle">Powered by AI • Trained on Real Cases</p>
+            <h1>🎯 Consulting Case Practice</h1>
+            <p class="subtitle">AI Generation • Real Cases Database</p>
         </header>
 
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="generate">🤖 Generate AI Case</button>
+            <button class="tab-btn" data-tab="real">📚 Practice Real Cases</button>
+        </div>
+
+        <!-- Generate Tab -->
+        <div class="tab-content active" id="generateTab">
         <div class="generator-section">
-            <h2>Generate New Case</h2>
+            <h2>Generate AI Case</h2>
 
             <div class="form-group">
                 <label for="caseType">Case Type:</label>
                 <select id="caseType">
+                    <option value="random" selected>Random (Surprise)</option>
                     <option value="profitability">Profitability</option>
                     <option value="market_entry">Market Entry</option>
                     <option value="mergers_acquisitions">M&A</option>
@@ -53,28 +62,96 @@
 
         <div id="loadingSection" class="loading-section" style="display: none;">
             <div class="spinner"></div>
-            <p>Generating your case interview...</p>
+            <p id="loadingMessage">Generating your case interview...</p>
         </div>
 
         <div id="caseSection" class="case-section" style="display: none;">
             <div class="case-header">
                 <h2>Generated Case</h2>
-                <button id="regenerateBtn" class="btn-secondary">Regenerate</button>
+                <div>
+                    <button id="downloadPdfBtn" class="btn-secondary">Download PDF</button>
+                    <button id="regenerateBtn" class="btn-secondary">Regenerate</button>
+                </div>
             </div>
 
             <div id="caseContent" class="case-content">
                 <!-- Case will be inserted here -->
             </div>
         </div>
+        </div>
 
-        <div class="stats-section">
-            <h3>Knowledge Base Stats</h3>
-            <div id="statsContent">
-                <p>Loading...</p>
+        <!-- Real Cases Tab -->
+        <div class="tab-content" id="realTab">
+            <div class="generator-section">
+                <h2>Practice with Real Cases</h2>
+                <p class="info-text">230 real cases from McKinsey, BCG, Bain interviews and business school casebooks</p>
+
+                <div class="form-group">
+                    <label for="realCaseType">Case Type:</label>
+                    <select id="realCaseType">
+                        <option value="all">All Types</option>
+                        <option value="profitability">Profitability</option>
+                        <option value="market_entry">Market Entry</option>
+                        <option value="mergers_acquisitions">M&A</option>
+                        <option value="competitive_response">Competitive Response</option>
+                        <option value="new_product_launch">New Product Launch</option>
+                        <option value="pricing">Pricing</option>
+                        <option value="cost_reduction">Cost Reduction</option>
+                        <option value="growth">Growth</option>
+                        <option value="private_equity">Private Equity</option>
+                        <option value="process_optimization">Process Optimization</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="realIndustry">Industry:</label>
+                    <select id="realIndustry">
+                        <option value="all">All Industries</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Manufacturing">Manufacturing</option>
+                        <option value="Retail">Retail</option>
+                        <option value="Consumer_Goods">Consumer Goods</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Energy">Energy</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="realSourceType">Source Type:</label>
+                    <select id="realSourceType">
+                        <option value="all">All Sources</option>
+                        <option value="rex">REX (Real Interview Experience)</option>
+                        <option value="casebook">Casebook</option>
+                    </select>
+                </div>
+
+                <button id="getRealCaseBtn" class="btn-primary">Get Random Real Case</button>
+            </div>
+
+            <div id="realLoadingSection" class="loading-section" style="display: none;">
+                <div class="spinner"></div>
+                <p id="realLoadingMessage">Loading real case...</p>
+            </div>
+
+            <div id="realCaseSection" class="case-section" style="display: none;">
+                <div class="case-header">
+                    <h2>Real Case</h2>
+                    <div>
+                        <button id="downloadRealPdfBtn" class="btn-secondary">Download PDF</button>
+                        <button id="getAnotherRealCaseBtn" class="btn-secondary">Get Another Case</button>
+                    </div>
+                </div>
+
+                <div id="realCaseContent" class="case-content">
+                    <!-- Real case will be inserted here -->
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

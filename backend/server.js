@@ -7,6 +7,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const CaseGenerator = require('./caseGenerator');
 
 const app = express();
@@ -129,6 +130,116 @@ app.get('/api/stats', (req, res) => {
   };
 
   res.json(stats);
+});
+
+/**
+ * GET /api/real-cases
+ * Get real cases from extracted_cases.json with filters
+ */
+app.get('/api/real-cases', (req, res) => {
+  try {
+    const extractedCasesPath = path.join(__dirname, '../data/extracted_cases.json');
+
+    if (!fs.existsSync(extractedCasesPath)) {
+      return res.status(404).json({ error: 'Extracted cases not found' });
+    }
+
+    const extractedData = JSON.parse(fs.readFileSync(extractedCasesPath, 'utf8'));
+    let cases = extractedData.cases || [];
+
+    // Apply filters
+    const { case_type, industry, source_type } = req.query;
+
+    if (case_type && case_type !== 'all') {
+      cases = cases.filter(c => c.case_type === case_type);
+    }
+
+    if (industry && industry !== 'all') {
+      cases = cases.filter(c => c.industry === industry);
+    }
+
+    if (source_type && source_type !== 'all') {
+      if (source_type === 'rex') {
+        cases = cases.filter(c => c.source && c.source.toUpperCase().includes('REX'));
+      } else if (source_type === 'casebook') {
+        cases = cases.filter(c => c.source && !c.source.toUpperCase().includes('REX'));
+      }
+    }
+
+    // Add metadata about source type
+    cases = cases.map(c => ({
+      ...c,
+      source_type: c.source && c.source.toUpperCase().includes('REX') ? 'REX' : 'Casebook',
+      source_display: c.source || 'Unknown'
+    }));
+
+    res.json({
+      total: cases.length,
+      total_in_database: extractedData.total_cases,
+      cases: cases
+    });
+
+  } catch (error) {
+    console.error('Error loading real cases:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/real-cases/random
+ * Get a random real case with optional filters
+ */
+app.get('/api/real-cases/random', (req, res) => {
+  try {
+    const extractedCasesPath = path.join(__dirname, '../data/extracted_cases.json');
+
+    if (!fs.existsSync(extractedCasesPath)) {
+      return res.status(404).json({ error: 'Extracted cases not found' });
+    }
+
+    const extractedData = JSON.parse(fs.readFileSync(extractedCasesPath, 'utf8'));
+    let cases = extractedData.cases || [];
+
+    // Apply filters
+    const { case_type, industry, source_type } = req.query;
+
+    if (case_type && case_type !== 'all') {
+      cases = cases.filter(c => c.case_type === case_type);
+    }
+
+    if (industry && industry !== 'all') {
+      cases = cases.filter(c => c.industry === industry);
+    }
+
+    if (source_type && source_type !== 'all') {
+      if (source_type === 'rex') {
+        cases = cases.filter(c => c.source && c.source.toUpperCase().includes('REX'));
+      } else if (source_type === 'casebook') {
+        cases = cases.filter(c => c.source && !c.source.toUpperCase().includes('REX'));
+      }
+    }
+
+    if (cases.length === 0) {
+      return res.status(404).json({ error: 'No cases found matching filters' });
+    }
+
+    // Pick random case
+    const randomCase = cases[Math.floor(Math.random() * cases.length)];
+
+    // Add metadata
+    randomCase.source_type = randomCase.source && randomCase.source.toUpperCase().includes('REX') ? 'REX' : 'Casebook';
+    randomCase.source_display = randomCase.source || 'Unknown';
+
+    res.json({
+      success: true,
+      case: randomCase,
+      total_matching: cases.length
+    });
+
+  } catch (error) {
+    console.error('Error loading random case:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Start server
