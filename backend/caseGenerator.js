@@ -133,13 +133,21 @@ class CaseGenerator {
    * Build the generation prompt for Claude API
    */
   buildGenerationPrompt(caseType, difficulty, patterns, industry, firmStyle) {
+    const difficultyGuidelines = {
+      easy: 'EASY difficulty means: simple calculations (basic arithmetic), straightforward structure, clear data, 1-2 step solutions, obvious frameworks, minimal complexity',
+      medium: 'MEDIUM difficulty means: moderate calculations (percentages, ratios), requires framework thinking, 2-3 step analysis, some ambiguity, standard consulting frameworks',
+      hard: 'HARD difficulty means: complex multi-step calculations, sophisticated analysis, requires synthesis of multiple factors, ambiguous data, creative frameworks, strategic insights'
+    };
+
     return `You are an expert case interview creator for top management consulting firms (McKinsey, BCG, Bain).
 
 TASK: Generate a NEW, UNIQUE consulting case interview.
 
+⚠️ CRITICAL: This case MUST be ${difficulty.toUpperCase()} difficulty. ${difficultyGuidelines[difficulty]}
+
 CASE SPECIFICATIONS:
 - Case Type: ${caseType}
-- Difficulty: ${difficulty}
+- Difficulty: ${difficulty.toUpperCase()} ⚠️ THIS IS MANDATORY - DO NOT DEVIATE
 - Industry: ${industry || 'Choose a realistic industry'}
 - Firm Style: ${firmStyle || 'BCG style (structured, data-driven)'}
 - Duration: 30-40 minutes
@@ -165,13 +173,30 @@ BRAINSTORMING PATTERNS:
 ${JSON.stringify(patterns.brainstorming_prompts, null, 2)}
 
 CRITICAL INSTRUCTIONS:
-1. Create a COMPLETELY NEW case (not a copy of examples)
-2. Combine elements from different patterns to create variety
-3. Use REALISTIC numbers, company names, and scenarios
-4. Include 2-3 quantitative questions with clear solutions
-5. Make difficulty appropriate: ${difficulty === 'easy' ? 'straightforward calculations, clear structure' : difficulty === 'medium' ? 'requires framework thinking, moderate calculations' : 'complex analysis, multi-step calculations, requires insights'}
-6. Follow consulting interview best practices
-7. Include interviewer guidance (hints, common mistakes)
+1. ⚠️ DIFFICULTY LEVEL: The case MUST be ${difficulty.toUpperCase()} difficulty
+   - The metadata.difficulty field MUST be "${difficulty}"
+   - The complexity, calculations, and structure MUST match ${difficulty} level
+   - ${difficulty === 'easy' ? 'Use only simple arithmetic (addition, subtraction, multiplication, division). Make frameworks obvious. Provide clear, unambiguous data.' : difficulty === 'medium' ? 'Use moderate math (percentages, growth rates, basic ratios). Require some framework thinking. Include 2-3 calculation steps.' : 'Use complex calculations (multiple variables, advanced ratios, market sizing). Require creative frameworks. Include ambiguous elements requiring strategic insights.'}
+
+2. ⚠️ CLARIFYING INFORMATION: Must provide NEW information NOT in the prompt
+   - Do NOT repeat basic facts already stated in the opening
+   - Add NEW specific data (revenue, employees, margins, growth rates)
+   - Add NEW context (competitive landscape, market dynamics)
+   - Include 3 examples of good clarifying questions the candidate should ask
+
+3. ⚠️ FRAMEWORK STRUCTURE: Must be DETAILED and ACTIONABLE for students
+   - Provide complete framework with main branches AND sub-branches
+   - For each branch, specify what to analyze with concrete examples
+   - Include key questions to explore each branch
+   - Provide step-by-step explanation of HOW to apply the framework to THIS specific case
+   - The framework should be detailed enough for a student to follow without guessing
+
+4. Create a COMPLETELY NEW case (not a copy of examples)
+5. Combine elements from different patterns to create variety
+6. Use REALISTIC numbers, company names, and scenarios
+7. Include 2-3 quantitative questions with clear solutions matching ${difficulty} difficulty
+8. Follow consulting interview best practices
+9. Include interviewer guidance (hints, common mistakes)
 
 OUTPUT FORMAT (return ONLY valid JSON, no markdown):
 {
@@ -187,25 +212,55 @@ OUTPUT FORMAT (return ONLY valid JSON, no markdown):
   },
   "prompt": "Compelling opening statement (3-5 sentences)",
   "clarifying_information": {
-    "objective": "Clear objective statement",
-    "timeline": "Decision timeline",
+    "objective": "Clear objective statement (DO NOT REPEAT info from prompt)",
+    "timeline": "Decision timeline (NEW info not in prompt)",
     "client_context": {
-      "name": "Company name",
-      "business": "What they do",
-      "geography": "Where they operate",
-      "recent_situation": "Context"
+      "name": "Company name (can repeat from prompt)",
+      "business": "What they do (more detail than prompt)",
+      "geography": "Where they operate (more specific than prompt)",
+      "recent_situation": "ADDITIONAL context not mentioned in prompt"
     },
     "additional_data_to_reveal": {
-      "revenue": "€XXM",
-      "employees": "X,XXX",
-      "market_position": "Description",
-      "other_key_facts": "..."
-    }
+      "revenue": "€XXM (NEW data)",
+      "employees": "X,XXX (NEW data)",
+      "market_position": "#X in market (NEW data)",
+      "competitive_landscape": "Key competitors and dynamics (NEW)",
+      "financial_metrics": "Margins, growth rates (NEW)",
+      "other_key_facts": "Only NEW information not in the opening prompt"
+    },
+    "questions_candidate_should_ask": [
+      "Example clarifying question 1",
+      "Example clarifying question 2",
+      "Example clarifying question 3"
+    ]
   },
   "framework_guidance": {
-    "expected_frameworks": ["Primary framework", "Alternative"],
-    "key_factors": ["Factor 1", "Factor 2", "Factor 3"],
-    "mece_breakdown_example": "How to structure the problem"
+    "expected_frameworks": ["Primary framework with DETAILED structure", "Alternative framework"],
+    "detailed_framework_structure": {
+      "framework_name": "Main framework name (e.g., Profitability Framework)",
+      "main_branches": [
+        {
+          "branch_name": "Revenue/Costs/Other",
+          "sub_branches": [
+            "Sub-branch 1 with specific elements",
+            "Sub-branch 2 with specific elements",
+            "Sub-branch 3 with specific metrics to analyze"
+          ],
+          "key_questions": [
+            "Question to explore this branch",
+            "Follow-up question"
+          ]
+        },
+        {
+          "branch_name": "Second main branch",
+          "sub_branches": ["...", "..."],
+          "key_questions": ["...", "..."]
+        }
+      ],
+      "how_to_apply": "Step-by-step explanation of how to use this framework for THIS case"
+    },
+    "key_factors": ["Specific Factor 1 with explanation", "Specific Factor 2 with explanation", "Specific Factor 3 with explanation"],
+    "mece_breakdown_example": "Complete MECE breakdown showing ALL levels of the tree"
   },
   "questions": [
     {
@@ -277,7 +332,15 @@ Generate the case now. Return ONLY the JSON object, no additional text.`;
       generatedCase.metadata = {};
     }
     generatedCase.metadata.case_type = caseType;
-    generatedCase.metadata.difficulty = difficulty;
+
+    // ⚠️ CRITICAL: Force the requested difficulty
+    // If Claude didn't respect the difficulty, override it
+    if (generatedCase.metadata.difficulty !== difficulty) {
+      console.warn(`⚠️  Claude returned difficulty "${generatedCase.metadata.difficulty}" but we requested "${difficulty}". Forcing correct difficulty.`);
+      generatedCase.metadata.difficulty = difficulty;
+    } else {
+      generatedCase.metadata.difficulty = difficulty;
+    }
 
     // Validate required fields
     const required = ['prompt', 'clarifying_information', 'framework_guidance', 'questions'];
