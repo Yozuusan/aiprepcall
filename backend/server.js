@@ -9,6 +9,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const CaseGenerator = require('./caseGenerator');
+const CaseLibrary = require('./caseLibrary');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,8 +19,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Initialize case generator
+// Initialize case generator and library
 const caseGenerator = new CaseGenerator();
+const caseLibrary = new CaseLibrary();
 
 /**
  * GET /api/health
@@ -242,6 +244,215 @@ app.get('/api/real-cases/random', (req, res) => {
   }
 });
 
+/**
+ * CASE LIBRARY ENDPOINTS
+ */
+
+/**
+ * GET /api/library/stats
+ * Get case library statistics
+ */
+app.get('/api/library/stats', (req, res) => {
+  try {
+    if (!caseLibrary.isAvailable()) {
+      return res.status(404).json({
+        error: 'Case library not available',
+        message: 'Run extraction and segmentation first'
+      });
+    }
+
+    const stats = caseLibrary.getStatistics();
+    res.json(stats);
+
+  } catch (error) {
+    console.error('Error getting library stats:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/library/case/random
+ * Get a random case from the library with optional filters
+ *
+ * Query params:
+ *   - case_type: Filter by case type
+ *   - difficulty: Filter by difficulty (easy/medium/hard)
+ *   - industry: Filter by industry
+ *   - min_quality: Minimum quality score (0-100)
+ */
+app.get('/api/library/case/random', (req, res) => {
+  try {
+    if (!caseLibrary.isAvailable()) {
+      return res.status(404).json({
+        error: 'Case library not available',
+        message: 'Run extraction and segmentation first'
+      });
+    }
+
+    const { case_type, difficulty, industry, min_quality } = req.query;
+
+    const criteria = {};
+    if (case_type) criteria.case_type = case_type;
+    if (difficulty) criteria.difficulty = difficulty;
+    if (industry) criteria.industry = industry;
+    if (min_quality) criteria.min_quality = parseInt(min_quality);
+
+    const selectedCase = caseLibrary.findCase(criteria);
+
+    if (!selectedCase) {
+      return res.status(404).json({
+        error: 'No case found matching criteria'
+      });
+    }
+
+    res.json({
+      success: true,
+      case: selectedCase
+    });
+
+  } catch (error) {
+    console.error('Error getting random case:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/library/case/:case_id
+ * Get a specific case by ID
+ */
+app.get('/api/library/case/:case_id', (req, res) => {
+  try {
+    if (!caseLibrary.isAvailable()) {
+      return res.status(404).json({
+        error: 'Case library not available'
+      });
+    }
+
+    const { case_id } = req.params;
+    const caseData = caseLibrary.loadCase(case_id);
+
+    if (!caseData) {
+      return res.status(404).json({
+        error: 'Case not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      case: caseData
+    });
+
+  } catch (error) {
+    console.error('Error loading case:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/library/cases/list
+ * List cases with filters
+ *
+ * Query params:
+ *   - case_type: Filter by case type
+ *   - difficulty: Filter by difficulty
+ *   - industry: Filter by industry
+ *   - limit: Max results (default 100)
+ */
+app.get('/api/library/cases/list', (req, res) => {
+  try {
+    if (!caseLibrary.isAvailable()) {
+      return res.status(404).json({
+        error: 'Case library not available'
+      });
+    }
+
+    const { case_type, difficulty, industry, limit } = req.query;
+
+    const criteria = {};
+    if (case_type) criteria.case_type = case_type;
+    if (difficulty) criteria.difficulty = difficulty;
+    if (industry) criteria.industry = industry;
+
+    const maxLimit = limit ? parseInt(limit) : 100;
+
+    const cases = caseLibrary.listCases(criteria, maxLimit);
+
+    res.json({
+      success: true,
+      count: cases.length,
+      cases: cases
+    });
+
+  } catch (error) {
+    console.error('Error listing cases:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/library/search
+ * Search cases by text query
+ *
+ * Query params:
+ *   - q: Search query
+ *   - limit: Max results (default 10)
+ */
+app.get('/api/library/search', (req, res) => {
+  try {
+    if (!caseLibrary.isAvailable()) {
+      return res.status(404).json({
+        error: 'Case library not available'
+      });
+    }
+
+    const { q, limit } = req.query;
+
+    if (!q) {
+      return res.status(400).json({
+        error: 'Search query (q) is required'
+      });
+    }
+
+    const maxLimit = limit ? parseInt(limit) : 10;
+    const results = caseLibrary.searchCases(q, maxLimit);
+
+    res.json({
+      success: true,
+      count: results.length,
+      query: q,
+      results: results
+    });
+
+  } catch (error) {
+    console.error('Error searching cases:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/library/filters
+ * Get available filter options
+ */
+app.get('/api/library/filters', (req, res) => {
+  try {
+    if (!caseLibrary.isAvailable()) {
+      return res.status(404).json({
+        error: 'Case library not available'
+      });
+    }
+
+    res.json({
+      case_types: caseLibrary.getCaseTypes(),
+      difficulties: caseLibrary.getDifficulties(),
+      industries: caseLibrary.getIndustries()
+    });
+
+  } catch (error) {
+    console.error('Error getting filters:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log('\n' + '='.repeat(60));
@@ -249,11 +460,28 @@ app.listen(PORT, () => {
   console.log('='.repeat(60));
   console.log(`\n✓ Server running on http://localhost:${PORT}`);
   console.log(`✓ Knowledge base: ${caseGenerator.knowledgeBase.total_cases_analyzed} cases analyzed`);
-  console.log(`\nEndpoints:`);
+
+  if (caseLibrary.isAvailable()) {
+    const stats = caseLibrary.getStatistics();
+    console.log(`✓ Case library: ${stats.total_cases} cases available`);
+  } else {
+    console.log(`⚠️  Case library not available (run extraction first)`);
+  }
+
+  console.log(`\nCore Endpoints:`);
   console.log(`  GET  /api/health        - Health check`);
   console.log(`  GET  /api/case-types    - Available case types`);
   console.log(`  POST /api/generate      - Generate new case`);
   console.log(`  GET  /api/stats         - Knowledge base stats`);
+
+  console.log(`\nCase Library Endpoints:`);
+  console.log(`  GET  /api/library/stats              - Library statistics`);
+  console.log(`  GET  /api/library/case/random        - Random case (with filters)`);
+  console.log(`  GET  /api/library/case/:case_id      - Get specific case`);
+  console.log(`  GET  /api/library/cases/list         - List cases (with filters)`);
+  console.log(`  GET  /api/library/search?q=query     - Search cases`);
+  console.log(`  GET  /api/library/filters            - Available filters`);
+
   console.log('\n' + '='.repeat(60) + '\n');
 });
 
